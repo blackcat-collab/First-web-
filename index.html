@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Multi-Tool Hub</title>
+  
+  <!-- jQuery CDN -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+  <style>
+    /* ========== CSS STYLES ========== */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .container {
+      position: relative;
+      width: 100%;
+      max-width: 420px;
+    }
+
+    /* Dots navigation visual */
+    .progress-bar {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+
+    .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.4);
+      transition: all 0.3s ease;
+    }
+
+    .dot.active {
+      background: #fff;
+      transform: scale(1.3);
+    }
+
+    /* Base Card Style */
+    .card {
+      display: none;
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 20px;
+      padding: 25px;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+      color: #fff;
+      text-align: center;
+    }
+
+    .card.active-card {
+      display: block;
+    }
+
+    .card h2 {
+      margin-bottom: 20px;
+      font-weight: 600;
+      letter-spacing: 1px;
+    }
+
+    /* Navigation Buttons */
+    .nav-buttons {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 25px;
+      gap: 10px;
+    }
+
+    button.next-btn, button.prev-btn {
+      background: linear-gradient(135deg, #ff758c 0%, #ff7eb3 100%);
+      border: none;
+      color: white;
+      padding: 10px 18px;
+      border-radius: 25px;
+      cursor: pointer;
+      font-weight: bold;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      transition: transform 0.2s, box-shadow 0.2s;
+      flex: 1;
+    }
+
+    button.next-btn:hover, button.prev-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Layer 1: Calculator Styles */
+    #calc-display {
+      width: 100%;
+      height: 50px;
+      background: rgba(0, 0, 0, 0.25);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 10px;
+      color: #fff;
+      font-size: 1.5rem;
+      text-align: right;
+      padding: 10px;
+      margin-bottom: 15px;
+    }
+
+    .calc-buttons {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+    }
+
+    .calc-buttons .btn {
+      padding: 12px;
+      border: none;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+      font-size: 1.2rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .calc-buttons .btn:hover {
+      background: rgba(255, 255, 255, 0.35);
+    }
+
+    .btn-op { background: rgba(255, 193, 7, 0.4) !important; }
+    .btn-clear { background: rgba(244, 67, 54, 0.5) !important; }
+    .btn-equal { 
+      background: rgba(76, 175, 80, 0.6) !important; 
+      grid-row: span 2;
+      height: 100%;
+    }
+
+    /* Layer 2: Clock & Timer Styles */
+    #digital-clock {
+      font-size: 2.2rem;
+      font-weight: bold;
+      background: rgba(0, 0, 0, 0.2);
+      padding: 15px;
+      border-radius: 12px;
+      letter-spacing: 2px;
+    }
+
+    .divider {
+      margin: 20px 0;
+      border: 0;
+      height: 1px;
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    #timer-display {
+      font-size: 1.8rem;
+      margin-bottom: 10px;
+    }
+
+    .timer-controls {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+    }
+
+    .timer-controls input {
+      width: 70px;
+      padding: 8px;
+      border-radius: 8px;
+      border: none;
+      text-align: center;
+    }
+
+    .timer-controls button {
+      padding: 8px 15px;
+      border-radius: 8px;
+      border: none;
+      background: #00c6ff;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    /* Layer 3: Calendar Styles */
+    .calendar-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+
+    .calendar-header button {
+      background: rgba(255, 255, 255, 0.2);
+      border: none;
+      color: white;
+      padding: 5px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 5px;
+      margin-bottom: 5px;
+    }
+
+    .day-name {
+      font-weight: bold;
+      font-size: 0.85rem;
+      opacity: 0.8;
+    }
+
+    .calendar-days {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 5px;
+    }
+
+    .calendar-days div {
+      padding: 8px 0;
+      font-size: 0.9rem;
+      border-radius: 6px;
+    }
+
+    .calendar-days .today {
+      background: #ff758c;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ========== HTML STRUCTURE ========== -->
+  <div class="container">
+    
+    <!-- Progress Dots -->
+    <div class="progress-bar">
+      <span class="dot active" id="dot-1"></span>
+      <span class="dot" id="dot-2"></span>
+      <span class="dot" id="dot-3"></span>
+    </div>
+
+    <!-- SECTION 1: CALCULATOR -->
+    <div class="card active-card" id="page-1">
+      <h2>Calculator</h2>
+      <div class="calc-box">
+        <input type="text" id="calc-display" readonly placeholder="0">
+        <div class="calc-buttons">
+          <button class="btn btn-clear">C</button>
+          <button class="btn btn-op">/</button>
+          <button class="btn btn-op">*</button>
+          <button class="btn btn-op">-</button>
+          <button class="btn">7</button>
+          <button class="btn">8</button>
+          <button class="btn">9</button>
+          <button class="btn btn-op">+</button>
+          <button class="btn">4</button>
+          <button class="btn">5</button>
+          <button class="btn">6</button>
+          <button class="btn btn-equal">=</button>
+          <button class="btn">1</button>
+          <button class="btn">2</button>
+          <button class="btn">3</button>
+          <button class="btn">0</button>
+        </div>
+      </div>
+      <div class="nav-buttons">
+        <button class="next-btn" data-next="page-2">Next: Clock & Timer &rarr;</button>
+      </div>
+    </div>
+
+    <!-- SECTION 2: CLOCK & TIMER -->
+    <div class="card" id="page-2">
+      <h2>Digital Clock & Timer</h2>
+      
+      <div class="clock-container">
+        <div id="digital-clock">00:00:00</div>
+      </div>
+
+      <hr class="divider">
+
+      <div class="timer-container">
+        <div id="timer-display">00:00</div>
+        <div class="timer-controls">
+          <input type="number" id="timer-input" placeholder="Secs" min="1">
+          <button id="start-timer">Start</button>
+          <button id="reset-timer">Reset</button>
+        </div>
+      </div>
+
+      <div class="nav-buttons">
+        <button class="prev-btn" data-prev="page-1">&larr; Back</button>
+        <button class="next-btn" data-next="page-3">Next: Calendar &rarr;</button>
+      </div>
+    </div>
+
+    <!-- SECTION 3: CALENDAR -->
+    <div class="card" id="page-3">
+      <h2>Interactive Calendar</h2>
+      
+      <div class="calendar-container">
+        <div class="calendar-header">
+          <button id="prev-month">&larr;</button>
+          <h3 id="month-year-display">Month Year</h3>
+          <button id="next-month">&rarr;</button>
+        </div>
+        <div class="calendar-grid">
+          <div class="day-name">Sun</div>
+          <div class="day-name">Mon</div>
+          <div class="day-name">Tue</div>
+          <div class="day-name">Wed</div>
+          <div class="day-name">Thu</div>
+          <div class="day-name">Fri</div>
+          <div class="day-name">Sat</div>
+        </div>
+        <div class="calendar-days" id="calendar-days"></div>
+      </div>
+
+      <div class="nav-buttons">
+        <button class="prev-btn" data-prev="page-2">&larr; Back</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ========== JAVASCRIPT / JQUERY ========== -->
+  <script>
+    $(document.body).ready(function () {
+
+      // --- 1. JQUERY PAGE SWAPPING & ANIMATIONS ---
+      function switchPage(targetId) {
+        $('.card').fadeOut(200, function() {
+          $('.card').removeClass('active-card');
+          $('#' + targetId).fadeIn(200).addClass('active-card');
+        });
+
+        // Update Dots indicator
+        $('.dot').removeClass('active');
+        if (targetId === 'page-1') $('#dot-1').addClass('active');
+        if (targetId === 'page-2') $('#dot-2').addClass('active');
+        if (targetId === 'page-3') $('#dot-3').addClass('active');
+      }
+
+      $('.next-btn').click(function () {
+        const nextTarget = $(this).data('next');
+        switchPage(nextTarget);
+      });
+
+      $('.prev-btn').click(function () {
+        const prevTarget = $(this).data('prev');
+        switchPage(prevTarget);
+      });
+
+
+      // --- 2. CALCULATOR LOGIC ---
+      $('.calc-buttons .btn').click(function () {
+        const val = $(this).text();
+        const display = $('#calc-display');
+
+        if (val === 'C') {
+          display.val('');
+        } else if (val === '=') {
+          try {
+            display.val(eval(display.val()));
+          } catch (e) {
+            display.val('Error');
+          }
+        } else {
+          display.val(display.val() + val);
+        }
+      });
+
+
+      // --- 3. DIGITAL CLOCK LOGIC ---
+      function updateClock() {
+        const now = new Date();
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        const seconds = String(now.getSeconds()).padStart(2, '0');
+        $('#digital-clock').text(`${hours}:${minutes}:${seconds}`);
+      }
+      setInterval(updateClock, 1000);
+      updateClock();
+
+
+      // --- 4. TIMER LOGIC ---
+      let timerInterval;
+      $('#start-timer').click(function () {
+        clearInterval(timerInterval);
+        let secondsLeft = parseInt($('#timer-input').val());
+
+        if (isNaN(secondsLeft) || secondsLeft <= 0) return;
+
+        timerInterval = setInterval(() => {
+          let mins = Math.floor(secondsLeft / 60);
+          let secs = secondsLeft % 60;
+          $('#timer-display').text(
+            `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`
+          );
+
+          if (secondsLeft <= 0) {
+            clearInterval(timerInterval);
+            alert("Time's up!");
+          }
+          secondsLeft--;
+        }, 1000);
+      });
+
+      $('#reset-timer').click(function () {
+        clearInterval(timerInterval);
+        $('#timer-display').text('00:00');
+        $('#timer-input').val('');
+      });
+
+
+      // --- 5. CALENDAR LOGIC ---
+      let currDate = new Date();
+
+      function renderCalendar() {
+        const year = currDate.getFullYear();
+        const month = currDate.getMonth();
+        
+        const monthNames = ["January", "February", "March", "April", "May", "June", 
+                            "July", "August", "September", "October", "November", "December"];
+        
+        $('#month-year-display').text(`${monthNames[month]} ${year}`);
+
+        const firstDayIndex = new Date(year, month, 1).getDay();
+        const totalDays = new Date(year, month + 1, 0).getDate();
+
+        let daysHtml = '';
+
+        // Empty spaces for padding previous month
+        for (let x = 0; x < firstDayIndex; x++) {
+          daysHtml += `<div></div>`;
+        }
+
+        // Days grid
+        const today = new Date();
+        for (let day = 1; day <= totalDays; day++) {
+          if (day === today.getDate() && month === today.getMonth() && year === today.getFullYear()) {
+            daysHtml += `<div class="today">${day}</div>`;
+          } else {
+            daysHtml += `<div>${day}</div>`;
+          }
+        }
+
+        $('#calendar-days').html(daysHtml);
+      }
+
+      $('#prev-month').click(function () {
+        currDate.setMonth(currDate.getMonth() - 1);
+        renderCalendar();
+      });
+
+      $('#next-month').click(function () {
+        currDate.setMonth(currDate.getMonth() + 1);
+        renderCalendar();
+      });
+
+      renderCalendar();
+    });
+  </script>
+</body>
+</html>
